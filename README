@@ -1,3 +1,107 @@
-Snow Vb API
+ServiceNOW VB API .01
+Inital Release 3/20/14
 
-Inital Release
++++++++++++++++HOW TO USE+++++++++++++++
+
+download a WSDL from ServiceNOW and save the XML to Directory
+
+open a command prompt
+cscript API.vbs <path_to_xml> <table_name>
+EX "cscript API.vbs ./sys_user.do.xml sys_user"
+This will create a vbs file <table_name>.vbs
+
+You can paste this directly in a script or import it to an existing VBscript
+
++++++++++++++++Import+++++++++++++++
+
+Include(strPath & "path_to_table_name.vbs")
+Sub Include (strFile)
+	Set objFSO = CreateObject("Scripting.FileSystemObject")
+	Set objTextFile = objFSO.OpenTextFile(strFile, 1)
+	ExecuteGlobal objTextFile.ReadAll
+	objTextFile.Close
+	Set objFSO = Nothing
+	Set objTextFile = Nothing
+End Sub
+
++++++++++++++++Execute Functions+++++++++++++++
+
+Currently the script only builds 3 functions for the ServiceNOW table (more to come).
+
+getKeys
+Update
+Insert
+
+Function names are table_nameAction
+EX sys_usergetKeys
+
+There are 3 paramters 
+	Instance
+	Login/Password (base64 in id:password format)
+	Data
+
+EX 
+Instance: demo005
+Account: admin:admin(base64 YWRtaW46YWRtaW4=)
+Data: SOAPuser_name<=>admin
+
+[code]
+wscript.echo sys_usergetKeys("demo005","YWRtaW46YWRtaW4=","SOAPuser_name<=>admin")
+[/code]
+
+------SOAP XML POST------
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sys="http://www.service-now.com/sys_user">
+	<soapenv:Header/>
+		<soapenv:Body>
+			<sys:getKeys>
+				<user_name>admin</user_name>
+			</sys:getKeys>
+		</soapenv:Body>
+</soapenv:Envelope>
+
+------XML REPONSE-------
+
+<?xml version='1.0' encoding='UTF-8'?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SOAP-ENV:Body>
+		<getKeysResponse xmlns="http://www.service-now.com/sys_user">
+			<sys_id>6816f79cc0a8016401c5a33be04be441</sys_id>
+			<count>1</count>
+		</getKeysResponse>
+	</SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+Data Parameter
+Format: SOAPfield_name (Just add SOAP to any field name)
+Operator: "<=>" this is equals
+Operator: "<S>" delimiter between fields
+
+Within Data Parameter you can also use encoded querys.
+
+EX SOAP__encoded_query<=>user_name=admin
+
+[code]
+wscript.echo sys_usergetKeys("demo005","YWRtaW46YWRtaW4=","SOAP__encoded_query<=>user_name=admin")
+[/code]
+
+------SOAP XML POST------
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sys="http://www.service-now.com/sys_user">
+	<soapenv:Header/>
+	<soapenv:Body>
+		<sys:getKeys>
+			<__encoded_query>user_name=admin</__encoded_query>
+		</sys:getKeys>
+	</soapenv:Body>
+</soapenv:Envelope>
+
+------XML REPONSE-------
+<?xml version='1.0' encoding='UTF-8'?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SOAP-ENV:Body>
+		<getKeysResponse xmlns="http://www.service-now.com/sys_user">
+			<sys_id>6816f79cc0a8016401c5a33be04be441</sys_id>
+			<count>1</count>
+		</getKeysResponse>
+	</SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
